@@ -1,11 +1,17 @@
+
 const express = require("express");
 const crypto = require("crypto");
+
 const app = express();
 app.use(express.json());
 
-const RAZORPAY_SECRET = "xplore9391"; // Use this same secret in Razorpay dashboard
+const RAZORPAY_SECRET = "xplore9391"; // Match this with Razorpay dashboard
 
 app.post("/webhook", (req, res) => {
+  console.log("🔥 Webhook triggered");
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+
   const secret = RAZORPAY_SECRET;
   const shasum = crypto.createHmac("sha256", secret);
   shasum.update(JSON.stringify(req.body));
