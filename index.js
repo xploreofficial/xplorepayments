@@ -1,66 +1,66 @@
 const express = require("express");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
-const cors = require("cors");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-const RAZORPAY_KEY_ID = "rzp_live_eERWggjUw8BS2k";
-const RAZORPAY_SECRET = "xplore9391";
-
-// ✅ Razorpay instance
 const razorpay = new Razorpay({
-  key_id: RAZORPAY_KEY_ID,
-  key_secret: RAZORPAY_SECRET,
+  key_id: "rzp_live_eERWggjUw8BS2k", // ✅ Your Live Razorpay Key
+  key_secret: "YOUR_SECRET_KEY"      // 🔒 Replace with your actual key secret
 });
 
-// 🧾 Create Razorpay order
+const RAZORPAY_WEBHOOK_SECRET = "xplore9391"; // 🔒 Match with Razorpay dashboard webhook secret
+
+// ✅ Route to create Razorpay order (with auto capture)
 app.post("/create-order", async (req, res) => {
-  const { amount, items } = req.body;
-  const options = {
-    amount: amount * 100, // amount in paise
-    currency: "INR",
-    payment_capture: 1,
-    notes: { files: JSON.stringify(items) }
-  };
+  const { amount } = req.body;
 
   try {
-    const order = await razorpay.orders.create(options);
-    res.json({ id: order.id, currency: order.currency, amount: order.amount });
+    const order = await razorpay.orders.create({
+      amount: amount * 100, // amount in paise
+      currency: "INR",
+      receipt: "order_rcptid_" + Date.now(),
+      payment_capture: 1
+    });
+
+    res.json(order);
   } catch (err) {
-    res.status(500).json({ error: "Error creating order" });
+    console.error("❌ Failed to create order:", err);
+    res.status(500).json({ error: "Order creation failed" });
   }
 });
 
-// ✅ Webhook endpoint for payment verification
+// ✅ Razorpay Webhook endpoint
 app.post("/webhook", (req, res) => {
-  const secret = RAZORPAY_SECRET;
-  const shasum = crypto.createHmac("sha256", secret);
-  shasum.update(JSON.stringify(req.body));
-  const digest = shasum.digest("hex");
+  const expectedSignature = crypto
+    .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
 
-  if (digest === req.headers["x-razorpay-signature"]) {
-    const payment = req.body.payload.payment.entity;
-    console.log("✅ Payment verified:", payment.id);
+  const signatureFromHeader = req.headers["x-razorpay-signature"];
+
+  if (expectedSignature === signatureFromHeader) {
+    const paymentId = req.body.payload?.payment?.entity?.id;
+    console.log("✅ Webhook Verified. Payment Captured:", paymentId);
+
+    // 🔒 Store payment info / update database here if needed
+
+    res.status(200).json({ status: "Webhook received" });
   } else {
-    console.log("❌ Invalid signature");
+    console.log("❌ Webhook signature mismatch");
+    res.status(403).json({ status: "Invalid signature" });
   }
-
-  res.status(200).json({ status: "ok" });
 });
 
-// 🗂️ Route to return files after payment (mocked for now)
-app.get("/get-files", (req, res) => {
-  const { order_id } = req.query;
-  // Replace with real file lookup
-  res.json({
-    files: [
-      { name: "example1.zip", url: "/downloads/example1.zip" },
-      { name: "example2.psd", url: "/downloads/example2.psd" },
-    ]
-  });
+// ✅ Optional: Health check
+app.get("/", (req, res) => {
+  res.send("🚀 Razorpay Backend is Live");
 });
+
+app.listen(3000, () => {
+  console.log("✅ Server running on port 3000");
+});
+
 
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
