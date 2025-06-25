@@ -1,11 +1,19 @@
 {
-  "name": "xplore-webhook-backend",
+  "name": "razorpay-webhook-backend",
   "version": "1.0.0",
+  "description": "Backend server for Razorpay Webhook & Order creation",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
-  }
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "razorpay": "^2.8.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "author": "xplore",
+  "license": "ISC"
 }
