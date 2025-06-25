@@ -6,11 +6,11 @@ const app = express();
 app.use(express.json());
 
 const razorpay = new Razorpay({
-  key_id: "rzp_live_eERWggjUw8BS2k", // Your live Key ID
+  key_id: "rzp_live_0t2JKu7ZEc9Nte", // Your live Key ID
   key_secret: "YOUR_SECRET_KEY"     // Replace with your live Key Secret
 });
 
-const RAZORPAY_WEBHOOK_SECRET = "xplore9391";
+const RAZORPAY_WEBHOOK_SECRET = "leelan123";
 
 // ✅ Route to create an order
 app.post("/create-order", async (req, res) => {
