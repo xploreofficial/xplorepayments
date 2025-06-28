@@ -7,7 +7,7 @@ app.use(express.json());
 
 const razorpay = new Razorpay({
   key_id: "rzp_live_0t2JKu7ZEc9Nte", // Your live Key ID
-  key_secret: "YOUR_SECRET_KEY"     // Replace with your live Key Secret
+  key_secret: "UakvLwrGKP3hjmDvYnTlgLox"     // Replace with your live Key Secret
 });
 
 const RAZORPAY_WEBHOOK_SECRET = "leelan123";
@@ -28,6 +28,8 @@ app.post("/create-order", async (req, res) => {
   } catch (err) {
     console.error("Order creation failed:", err);
     res.status(500).json({ error: "Order creation failed" });
+    console.log("📦 Order request received for amount:", amount);
+
   }
 });
 
