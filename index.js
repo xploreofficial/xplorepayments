@@ -6,30 +6,30 @@ const app = express();
 app.use(express.json());
 
 const razorpay = new Razorpay({
-  key_id: "rzp_live_0t2JKu7ZEc9Nte", // Your live Key ID
-  key_secret: "UakvLwrGKP3hjmDvYnTlgLox"     // Replace with your live Key Secret
+  key_id: "rzp_live_0t2JKu7ZEc9Nte", // ✅ Your live Key ID
+  key_secret: "UakvLwrGKP3hjmDvYnTlgLox" // ✅ Your live Key Secret
 });
 
 const RAZORPAY_WEBHOOK_SECRET = "leelan123";
 
-// ✅ Route to create an order
+// ✅ Create order route
 app.post("/create-order", async (req, res) => {
   const { amount } = req.body;
+  console.log("📦 Order request received for amount:", amount); // ✅ Log before try block
 
   try {
     const order = await razorpay.orders.create({
-      amount: amount * 100,
+      amount: amount * 100, // 💰 Amount in paise
       currency: "INR",
       receipt: "order_rcptid_" + Date.now(),
-      payment_capture: 1
+      payment_capture: 1 // ✅ Enables auto-capture
     });
 
+    console.log("✅ Order created:", order.id);
     res.json(order);
   } catch (err) {
-    console.error("Order creation failed:", err);
+    console.error("❌ Order creation failed:", err);
     res.status(500).json({ error: "Order creation failed" });
-    console.log("📦 Order request received for amount:", amount);
-
   }
 });
 
@@ -55,7 +55,7 @@ app.get("/", (req, res) => {
   res.send("✅ Razorpay backend is live");
 });
 
-// ✅ Start server only once
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
