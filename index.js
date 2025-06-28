@@ -3,26 +3,32 @@ const crypto = require("crypto");
 const Razorpay = require("razorpay");
 
 const app = express();
-app.use(express.json());
+
+// Required to properly parse headers for Razorpay webhook
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 const razorpay = new Razorpay({
-  key_id: "rzp_live_0t2JKu7ZEc9Nte", // ✅ Your live Key ID
-  key_secret: "UakvLwrGKP3hjmDvYnTlgLox" // ✅ Your live Key Secret
+  key_id: "rzp_live_0t2JKu7ZEc9Nte",
+  key_secret: "UakvLwrGKP3hjmDvYnTlgLox"
 });
 
 const RAZORPAY_WEBHOOK_SECRET = "leelan123";
 
-// ✅ Create order route
+// ✅ Create Order Route
 app.post("/create-order", async (req, res) => {
   const { amount } = req.body;
-  console.log("📦 Order request received for amount:", amount); // ✅ Log before try block
+  console.log("📦 Order request received for amount:", amount);
 
   try {
     const order = await razorpay.orders.create({
-      amount: amount * 100, // 💰 Amount in paise
+      amount: amount, // Already in paisa from frontend
       currency: "INR",
       receipt: "order_rcptid_" + Date.now(),
-      payment_capture: 1 // ✅ Enables auto-capture
+      payment_capture: 1
     });
 
     console.log("✅ Order created:", order.id);
@@ -33,31 +39,31 @@ app.post("/create-order", async (req, res) => {
   }
 });
 
-// ✅ Webhook route
+// ✅ Webhook Verification Route
 app.post("/webhook", (req, res) => {
+  const signature = req.headers["x-razorpay-signature"];
   const expectedSignature = crypto
     .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
-    .update(JSON.stringify(req.body))
+    .update(req.rawBody)
     .digest("hex");
 
-  if (expectedSignature === req.headers["x-razorpay-signature"]) {
+  if (signature === expectedSignature) {
+    const event = req.body.event;
     const paymentId = req.body.payload?.payment?.entity?.id;
-    console.log("✅ Webhook verified. Payment ID:", paymentId);
+    console.log(`✅ Webhook Received: ${event}, Payment ID: ${paymentId}`);
     res.status(200).json({ status: "Webhook received" });
   } else {
-    console.log("❌ Invalid webhook signature");
+    console.log("❌ Invalid Webhook Signature");
     res.status(403).json({ status: "Invalid signature" });
   }
 });
 
-// ✅ Health check route
+// ✅ Health check
 app.get("/", (req, res) => {
   res.send("✅ Razorpay backend is live");
 });
 
-// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
-
