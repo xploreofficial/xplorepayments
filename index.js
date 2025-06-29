@@ -2,11 +2,13 @@ const express = require("express");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const cors = require("cors");
-app.use(cors());
 
 const app = express();
 
-// Required to properly parse headers for Razorpay webhook
+// ✅ Enable CORS before any routes or parsing
+app.use(cors());
+
+// ✅ Required to properly parse headers for Razorpay webhook
 app.use(express.json({
   verify: (req, res, buf) => {
     req.rawBody = buf;
@@ -27,7 +29,7 @@ app.post("/create-order", async (req, res) => {
 
   try {
     const order = await razorpay.orders.create({
-      amount: amount, // Already in paisa from frontend
+      amount: amount, // Amount in paisa
       currency: "INR",
       receipt: "order_rcptid_" + Date.now(),
       payment_capture: 1
@@ -60,7 +62,7 @@ app.post("/webhook", (req, res) => {
   }
 });
 
-// ✅ Health check
+// ✅ Health Check
 app.get("/", (req, res) => {
   res.send("✅ Razorpay backend is live");
 });
@@ -69,3 +71,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
+
