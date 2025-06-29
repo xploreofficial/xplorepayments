@@ -1,6 +1,8 @@
 const express = require("express");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const cors = require("cors");
+app.use(cors());
 
 const app = express();
 
